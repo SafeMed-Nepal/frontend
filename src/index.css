@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  /* You can extend theme here if needed later */
+}
+
+/* Optional: Custom styles */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}

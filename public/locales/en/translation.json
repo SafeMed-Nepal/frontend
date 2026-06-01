@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "title": "SafeMed Nepal"
+  },
+  "home": {
+    "searchPlaceholder": "Search symptoms or remedies...",
+    "noResults": "No remedies found. Please consult a doctor."
+  },
+  "remedy": {
+    "ingredients": "Ingredients",
+    "steps": "Steps",
+    "precautions": "Precautions",
+    "warnings": "When to see a doctor",
+    "saveOffline": "Save for Offline",
+    "saved": "Saved!",
+    "back": "Back to Home"
+  }
+}
