@@ -1,19 +1,32 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { api } from '../lib/api';
+import Toast from '../components/Toast';
 
 export default function RemedyDetail() {
   const { id } = useParams();
+  const { t, i18n } = useTranslation();
   const [remedy, setRemedy] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     const fetchRemedy = async () => {
+      setLoading(true);
       try {
         const result = await api.getRemedyById(id);
         setRemedy(result.data);
       } catch (err) {
-        console.error(err);
+        // Fallback to offline cache
+        const cached = localStorage.getItem(`remedy_${id}`);
+        if (cached) {
+          setRemedy(JSON.parse(cached));
+        } else {
+          console.error('Failed to load remedy:', err);
+        }
       } finally {
         setLoading(false);
       }
@@ -21,35 +34,78 @@ export default function RemedyDetail() {
     fetchRemedy();
   }, [id]);
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
-  if (!remedy) return <p className="text-center mt-10">Remedy not found</p>;
+  const saveForOffline = () => {
+    if (!remedy) return;
+    
+    localStorage.setItem(`remedy_${remedy.id}`, JSON.stringify(remedy));
+    setSaved(true);
+    setToastMessage(t('remedy.saved', 'Saved for offline access!'));
+    setShowToast(true);
+    
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const getTitle = () => i18n.language === 'ne' && remedy?.title_ne ? remedy.title_ne : remedy?.title_en;
+  const getField = (enField, neField) => i18n.language === 'ne' && neField ? neField : enField;
+
+  if (loading) return <div className="text-center mt-20 text-lg">Loading remedy...</div>;
+  if (!remedy) return <div className="text-center mt-20">Remedy not found</div>;
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <Link to="/" className="text-amber-600 mb-6 inline-block">
-        &larr; Back to Home
+    <div className="max-w-2xl mx-auto p-4 pb-12">
+      <Link to="/" className="inline-flex items-center text-amber-600 mb-6 hover:underline">
+        ← {t('remedy.back', 'Back to Home')}
       </Link>
 
-      <h1 className="text-3xl font-bold mb-4">{remedy.title_en}</h1>
+      <h1 className="text-3xl font-bold mb-6 leading-tight">{getTitle()}</h1>
 
-      {remedy.warnings_en && (
-        <div className="bg-amber-100 border-l-4 border-amber-500 p-4 mb-6">
-          <strong>When to see a doctor:</strong>
-          <p>{remedy.warnings_en}</p>
+      {/* Prominent Warning Box */}
+      {(remedy.warnings_en || remedy.warnings_ne) && (
+        <div className="bg-amber-100 border-l-4 border-amber-500 p-5 rounded-2xl mb-8 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-bold text-amber-800 text-lg mb-1">
+                {t('remedy.warnings', 'When to see a doctor')}:
+              </p>
+              <p className="text-amber-700 leading-relaxed">
+                {getField(remedy.warnings_en, remedy.warnings_ne)}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-2xl mb-6">
-        <h2 className="font-semibold mb-2">Ingredients</h2>
-        <p>{remedy.ingredients_en}</p>
-      </div>
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-3xl shadow-sm">
+          <h2 className="font-semibold text-lg mb-3">{t('remedy.ingredients', 'Ingredients')}</h2>
+          <p className="text-gray-700 leading-relaxed">
+            {getField(remedy.ingredients_en, remedy.ingredients_ne)}
+          </p>
+        </div>
 
-      <div className="bg-white p-6 rounded-2xl">
-        <h2 className="font-semibold mb-3">Steps</h2>
-        <div className="whitespace-pre-line text-gray-700 leading-relaxed">
-          {remedy.steps_en}
+        <div className="bg-white p-6 rounded-3xl shadow-sm">
+          <h2 className="font-semibold text-lg mb-3">{t('remedy.steps', 'Steps')}</h2>
+          <div className="whitespace-pre-line text-gray-700 leading-relaxed">
+            {getField(remedy.steps_en, remedy.steps_ne)}
+          </div>
         </div>
       </div>
+
+      {/* Save for Offline Button */}
+      <button
+        onClick={saveForOffline}
+        className="mt-8 w-full py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+        disabled={saved}
+      >
+        {saved ? '✅' : '📥'} {t('remedy.saveOffline', 'Save for Offline')}
+      </button>
+
+      <Toast 
+        message={toastMessage} 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
     </div>
   );
 }
