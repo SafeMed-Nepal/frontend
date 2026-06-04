@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Check } from 'lucide-react';
 
 function formatReviewerName(reviewerName) {
   if (!reviewerName) return 'SafeMed Reviewer';
@@ -29,7 +30,7 @@ export default function VerifiedBadge({ remedy, size = 'md' }) {
       className={`inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-800 font-medium border border-green-200 ${sizeClasses}`}
       title={t('remedy.verifiedOn')}
     >
-      <span aria-hidden>✓</span>
+      <Check size={14} aria-hidden />
       <span>{t('remedy.verifiedBy', { name: reviewer })}</span>
     </span>
   );

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import Toast from '../components/Toast';
 import VerifiedBadge from '../components/VerifiedBadge';
+import { ArrowLeft, AlertTriangle, DownloadCloud, CheckCircle } from 'lucide-react';
 
 export default function RemedyDetail() {
   const { id } = useParams();
@@ -54,8 +55,8 @@ export default function RemedyDetail() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 pb-12">
-      <Link to="/" className="inline-flex items-center text-amber-600 mb-6 hover:underline">
-        ← {t('remedy.back', 'Back to Home')}
+    <Link to="/" className="inline-flex items-center text-amber-600 mb-6 hover:underline">
+        <ArrowLeft aria-hidden size={18} className="mr-2" /> {t('remedy.back', 'Back to Home')}
       </Link>
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 leading-tight">{getTitle()}</h1>
@@ -68,7 +69,7 @@ export default function RemedyDetail() {
       {(remedy.warnings_en || remedy.warnings_ne) && (
         <div className="bg-amber-100 border-l-4 border-amber-500 p-5 rounded-2xl mb-8 shadow-sm">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle size={28} className="text-amber-700" aria-hidden />
             <div>
               <p className="font-bold text-amber-800 text-lg mb-1">
                 {t('remedy.warnings', 'When to see a doctor')}:
@@ -103,7 +104,7 @@ export default function RemedyDetail() {
         className="mt-8 w-full py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-semibold text-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
         disabled={saved}
       >
-        {saved ? '✅' : '📥'} {t('remedy.saveOffline', 'Save for Offline')}
+        {saved ? <CheckCircle size={18} aria-hidden /> : <DownloadCloud size={18} aria-hidden />} {t('remedy.saveOffline', 'Save for Offline')}
       </button>
 
       <Toast 

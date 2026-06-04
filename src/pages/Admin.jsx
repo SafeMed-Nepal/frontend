@@ -42,14 +42,18 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    fetchRemedies();
+    const t = setTimeout(() => {
+      fetchRemedies();
+    }, 0);
+
+    return () => clearTimeout(t);
   }, []);
 
   const updateRemedyStatus = async (id, newStatus) => {
     setActionLoading(true);
     try {
       await api.updateRemedyStatus(id, newStatus);
-      alert(`✅ Successfully marked as ${newStatus}`);
+      alert(`Successfully marked as ${newStatus}`);
       setSelectedRemedy(null);
       fetchRemedies();
     } catch (err) {
@@ -63,7 +67,7 @@ export default function Admin() {
     e.preventDefault();
     setActionLoading(true);
 
-    try {
+      try {
       const tagsArray = newRemedy.symptom_tags
         .split(",")
         .map((t) => t.trim())
@@ -75,7 +79,7 @@ export default function Admin() {
           status: "draft",
       });
 
-      alert("✅ New remedy added as Draft!");
+      alert("New remedy added as Draft!");
       setShowAddForm(false);
       setNewRemedy({
         title_en: "",
@@ -214,25 +218,25 @@ export default function Admin() {
                   onClick={() =>
                     updateRemedyStatus(selectedRemedy.id, "published")
                   }
-                  className="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold"
+                  className="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
                 >
-                  ✅ Approve & Publish
+                  Approve & Publish
                 </button>
                 <button
                   onClick={() =>
                     updateRemedyStatus(selectedRemedy.id, "needs_revision")
                   }
-                  className="w-full py-4 bg-amber-600 text-white rounded-2xl font-semibold"
+                  className="w-full py-4 bg-amber-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
                 >
-                  ✏️ Request Revision
+                  Request Revision
                 </button>
                 <button
                   onClick={() =>
                     updateRemedyStatus(selectedRemedy.id, "rejected")
                   }
-                  className="w-full py-4 bg-red-600 text-white rounded-2xl font-semibold"
+                  className="w-full py-4 bg-red-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
                 >
-                  ❌ Reject
+                  Reject
                 </button>
               </div>
             </div>

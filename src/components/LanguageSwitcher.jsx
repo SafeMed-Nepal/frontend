@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Globe } from 'lucide-react';
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
@@ -12,9 +13,10 @@ export default function LanguageSwitcher() {
   return (
     <button
       onClick={toggleLanguage}
-      className="px-5 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full text-sm font-medium transition-colors"
+      className="px-5 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-2"
     >
-      {i18n.language === 'en' ? '🇳🇵 नेपाली' : '🇬🇧 English'}
+      <Globe size={16} aria-hidden />
+      <span>{i18n.language === 'en' ? 'नेपाली' : 'English'}</span>
     </button>
   );
 }
