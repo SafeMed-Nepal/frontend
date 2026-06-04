@@ -1,26 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { getQueueLength } from '../lib/offlineReviews';
+import { CloudOff } from 'lucide-react';
 
 export default function OfflineBanner() {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [online, setOnline] = useState(navigator.onLine);
+  const [queued, setQueued] = useState(0);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const onOnline = () => { setOnline(true); setQueued(getQueueLength()); };
+    const onOffline = () => setOnline(false);
+    const onQueued = async (e) => setQueued(await getQueueLength());
+    const onFlushed = async (e) => setQueued(await getQueueLength());
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('offlineReviews:queued', onQueued);
+    window.addEventListener('offlineReviews:flushed', onFlushed);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+      window.removeEventListener('offlineReviews:queued', onQueued);
+      window.removeEventListener('offlineReviews:flushed', onFlushed);
     };
   }, []);
 
-  if (!isOffline) return null;
+  if (online && queued === 0) return null;
 
   return (
-    <div className="bg-amber-500 text-white text-center py-2 text-sm font-medium sticky top-0 z-50">
-      You are offline. Showing saved content.
+    <div className={`w-full text-sm text-white ${online ? 'bg-amber-600' : 'bg-red-600'} p-2 text-center`}>
+      {!online ? (
+        <div className="flex items-center justify-center gap-2">
+          <CloudOff className="w-4 h-4" /> Offline — your reviews will be queued
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-2">
+          <span>{queued}</span> review(s) pending sync
+        </div>
+      )}
     </div>
   );
 }

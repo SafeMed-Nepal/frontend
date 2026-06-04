@@ -2,13 +2,19 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useToast } from "../lib/ToastContext";
+import { useAuth } from '../lib/AuthContext';
+import { ThumbsUp, Edit3, ThumbsDown } from 'lucide-react';
+import { enqueueReview } from '../lib/offlineReviews';
 
 export default function Admin() {
   const { i18n } = useTranslation();
   const [remedies, setRemedies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [selectedRemedy, setSelectedRemedy] = useState(null);
+  const { user, userProfile } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const { showToast } = useToast();
@@ -24,16 +30,19 @@ export default function Admin() {
     steps_en: "",
     steps_ne: "",
     precautions_en: "",
+    precautions_ne: "",
     warnings_en: "",
+    warnings_ne: "",
     symptom_tags: "",
   });
 
-  const fetchRemedies = async () => {
+  const fetchRemedies = async (page = 1, limit = 10) => {
     setLoading(true);
     try {
       const result = await api.getRemedies(null, { forAdmin: true });
-      // backend returns { success: true, data: [...] }
+      // backend returns { success: true, data: [...], count }
       setRemedies(result.data || []);
+      setTotalCount(result.count || 0);
       if (!result.data) console.warn('No data field in getRemedies response:', result);
     } catch (err) {
       console.error('Admin fetchRemedies error:', err);
@@ -44,13 +53,71 @@ export default function Admin() {
     }
   };
 
+  const submitReview = async (remedyId, decision) => {
+    try {
+      setActionLoading(true);
+      if (!navigator.onLine) {
+        // offline: enqueue for later sync
+        await enqueueReview({ remedyId, decision, comment: '' });
+        showToast('Offline: review queued and will be submitted when online', 'success');
+      } else {
+        await api.postReview(remedyId, { decision });
+        showToast('Review submitted', 'success');
+      }
+      // refresh the list and the selected remedy's reviews
+      await fetchRemedies();
+      if (selectedRemedy?.id === remedyId) {
+        const rev = await api.getReviews(remedyId);
+        setSelectedRemedy((s) => ({ ...s, review_counts: rev.counts || {}, recent_reviews: rev.recent || [] }));
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to submit review', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     const t = setTimeout(() => {
-      fetchRemedies();
+      fetchRemedies(page);
     }, 0);
 
     return () => clearTimeout(t);
-  }, []);
+  }, [page]);
+
+  useEffect(() => {
+    // When a remedy is selected, fetch its reviews to show recent decisions
+    if (!selectedRemedy) return;
+
+    let mounted = true;
+    const loadReviews = async () => {
+      try {
+        const res = await api.getReviews(selectedRemedy.id);
+        if (!mounted) return;
+        // backend returns { success: true, counts: {...}, recent: [...] }
+        setSelectedRemedy((s) => ({ ...s, review_counts: res.counts || {}, recent_reviews: res.recentWithNames || res.recent || [] }));
+      } catch (err) {
+        console.error('Failed to load reviews:', err);
+      }
+    };
+
+    loadReviews();
+
+    const onQueued = (e) => {
+      showToast(`Queued ${e.detail?.length || 0} offline review(s)`, 'success');
+    };
+    const onFlushed = (e) => {
+      const { synced } = e.detail || {};
+      if (synced > 0) {
+        showToast(`${synced} offline review(s) synced`, 'success');
+        fetchRemedies();
+      }
+    }
+    window.addEventListener('offlineReviews:queued', onQueued);
+    window.addEventListener('offlineReviews:flushed', onFlushed);
+
+    return () => { mounted = false; };
+  }, [selectedRemedy?.id]);
 
   const updateRemedyStatus = async (id, newStatus) => {
     setActionLoading(true);
@@ -93,7 +160,9 @@ export default function Admin() {
         steps_en: "",
         steps_ne: "",
         precautions_en: "",
+        precautions_ne: "",
         warnings_en: "",
+        warnings_ne: "",
         symptom_tags: "",
       });
       fetchRemedies();
@@ -130,6 +199,8 @@ export default function Admin() {
             + Add New Remedy
           </button>
         </div>
+
+              {/* placeholder for header area - recent reviews are shown in the right-side panel when a remedy is selected */}
       </div>
 
       {/* Filters */}
@@ -169,11 +240,51 @@ export default function Admin() {
                         {getField(remedy.description_en, remedy.description_ne)}
                       </p>
                     </div>
-                    <span
-                      className={`px-4 py-1 text-xs rounded-full self-start ${remedy.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
-                    >
-                      {remedy.status}
-                    </span>
+              <div className="flex flex-col items-end gap-2">
+                <span
+                  className={`px-4 py-1 text-xs rounded-full self-start ${remedy.status === "published" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                >
+                  {remedy.status}
+                </span>
+                <div className="text-xs text-gray-500 flex items-center gap-3">
+                  <div className="flex items-center gap-1"><ThumbsUp className="w-4 h-4 text-green-600" /> <span>{remedy.review_counts?.approve || 0}</span></div>
+                  <div className="flex items-center gap-1"><Edit3 className="w-4 h-4 text-amber-600" /> <span>{remedy.review_counts?.needs_revision || 0}</span></div>
+                  <div className="flex items-center gap-1"><ThumbsDown className="w-4 h-4 text-red-600" /> <span>{remedy.review_counts?.reject || 0}</span></div>
+                </div>
+
+              {/* Recent reviewer decisions */}
+              <div className="mt-6">
+                <h4 className="font-semibold">Recent Reviewer Decisions</h4>
+                <div className="mt-2 space-y-2">
+                  {(!selectedRemedy?.recent_reviews || selectedRemedy.recent_reviews.length === 0) && (
+                    <p className="text-sm text-gray-500">No reviews yet</p>
+                  )}
+                  {(selectedRemedy?.recent_reviews || []).map((r) => (
+                    <div key={r.reviewer_id + r.updated_at} className="p-3 bg-gray-50 rounded-2xl">
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-sm font-medium">{r.reviewer_name || r.reviewer_display_name || r.reviewer_id}</div>
+                          <div className="text-xs text-gray-600">{new Date(r.updated_at).toLocaleString()}</div>
+                        </div>
+                        <div className="text-sm font-semibold">
+                          {r.decision}
+                        </div>
+          {/* pagination controls */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-600">Total: {totalCount}</div>
+            <div className="flex gap-2">
+              <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Prev</button>
+              <div className="px-3 py-1 bg-white border rounded">Page {page}</div>
+              <button disabled={remedies.length === 0 || remedies.length < 10} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Next</button>
+            </div>
+          </div>
+                      </div>
+                      {r.comment && <div className="mt-2 text-sm text-gray-700">{r.comment}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              </div>
                   </div>
                 </div>
               ))
@@ -216,26 +327,32 @@ export default function Admin() {
               </div>
 
               <div className="mt-8 space-y-3">
+                {userProfile?.role === 'admin' ? (
+                  <button
+                    onClick={() =>
+                      updateRemedyStatus(selectedRemedy.id, "published")
+                    }
+                    className="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
+                  >
+                    Approve & Publish
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => submitReview(selectedRemedy.id, 'approve')}
+                    className="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
+                  >
+                    Approve (Recommend)
+                  </button>
+                )}
+
                 <button
-                  onClick={() =>
-                    updateRemedyStatus(selectedRemedy.id, "published")
-                  }
-                  className="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
-                >
-                  Approve & Publish
-                </button>
-                <button
-                  onClick={() =>
-                    updateRemedyStatus(selectedRemedy.id, "needs_revision")
-                  }
+                  onClick={() => submitReview(selectedRemedy.id, 'needs_revision')}
                   className="w-full py-4 bg-amber-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
                 >
                   Request Revision
                 </button>
                 <button
-                  onClick={() =>
-                    updateRemedyStatus(selectedRemedy.id, "rejected")
-                  }
+                  onClick={() => submitReview(selectedRemedy.id, 'reject')}
                   className="w-full py-4 bg-red-600 text-white rounded-2xl font-semibold flex items-center justify-center gap-2"
                 >
                   Reject
@@ -340,6 +457,44 @@ export default function Admin() {
                     setNewRemedy({ ...newRemedy, steps_ne: e.target.value })
                   }
                   className="p-4 border rounded-2xl h-32"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <textarea
+                  placeholder="Precautions (English)"
+                  value={newRemedy.precautions_en}
+                  onChange={(e) =>
+                    setNewRemedy({ ...newRemedy, precautions_en: e.target.value })
+                  }
+                  className="p-4 border rounded-2xl h-28"
+                />
+                <textarea
+                  placeholder="Precautions (Nepali)"
+                  value={newRemedy.precautions_ne}
+                  onChange={(e) =>
+                    setNewRemedy({ ...newRemedy, precautions_ne: e.target.value })
+                  }
+                  className="p-4 border rounded-2xl h-28"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <textarea
+                  placeholder="Warnings (English)"
+                  value={newRemedy.warnings_en}
+                  onChange={(e) =>
+                    setNewRemedy({ ...newRemedy, warnings_en: e.target.value })
+                  }
+                  className="p-4 border rounded-2xl h-28"
+                />
+                <textarea
+                  placeholder="Warnings (Nepali)"
+                  value={newRemedy.warnings_ne}
+                  onChange={(e) =>
+                    setNewRemedy({ ...newRemedy, warnings_ne: e.target.value })
+                  }
+                  className="p-4 border rounded-2xl h-28"
                 />
               </div>
 

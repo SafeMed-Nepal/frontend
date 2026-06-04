@@ -17,18 +17,21 @@ const symptoms = [
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [remedies, setRemedies] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [allRemedies, setAllRemedies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSymptom, setSelectedSymptom] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchRemedies = async (symptom = null) => {
+  const fetchRemedies = async (symptom = null, page = 1) => {
     setLoading(true);
     setSelectedSymptom(symptom);
     try {
       const result = await api.getRemedies(symptom);
       const fetchedRemedies = result.data || [];
       setRemedies(fetchedRemedies);
+      setTotalCount(result.count || 0);
       if (!symptom) {
         setAllRemedies(fetchedRemedies);
       }
@@ -41,7 +44,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchRemedies();
+    fetchRemedies(null, page);
   }, []);
 
   const filterRemedies = useCallback((list, rawQuery) => {
@@ -204,6 +207,15 @@ export default function Home() {
           ))}
         </div>
       )}
+      {/* pagination */}
+      <div className="flex items-center justify-between mt-6 max-w-2xl mx-auto">
+        <div className="text-sm text-gray-600">Total: {totalCount}</div>
+        <div className="flex gap-2">
+          <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Prev</button>
+          <div className="px-3 py-1 bg-white border rounded">Page {page}</div>
+          <button disabled={remedies.length === 0 || remedies.length < 10} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Next</button>
+        </div>
+      </div>
     </div>
   );
 }

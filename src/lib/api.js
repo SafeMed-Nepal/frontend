@@ -36,8 +36,37 @@ export const api = {
       headers,
     });
 
-    if (!res.ok) throw new Error('Failed to fetch remedies');
-    return res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || 'Failed to fetch remedies');
+
+    // return { data: [...], count }
+    return data;
+  },
+
+  async postReview(remedyId, payload) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/remedies/${remedyId}/reviews`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to submit review');
+    return body;
+  },
+
+  async getReviews(remedyId) {
+    const headers = await getOptionalAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/remedies/${remedyId}/reviews`, {
+      headers,
+      credentials: 'include',
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to fetch reviews');
+    // backend returns { success: true, counts: {approve,needs_revision,reject}, recent: [...] }
+    return body;
   },
 
   async getRemedyById(id) {

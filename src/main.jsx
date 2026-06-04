@@ -5,6 +5,7 @@ import './index.css'
 import './lib/i18n'
 import { AuthProvider } from './lib/AuthContext.jsx'
 import { ToastProvider } from './lib/ToastContext'
+import { initOfflineReviews } from './lib/offlineReviews'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
