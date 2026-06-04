@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import Toast from '../components/Toast';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 export default function RemedyDetail() {
   const { id } = useParams();
@@ -57,7 +58,11 @@ export default function RemedyDetail() {
         ← {t('remedy.back', 'Back to Home')}
       </Link>
 
-      <h1 className="text-3xl font-bold mb-6 leading-tight">{getTitle()}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 leading-tight">{getTitle()}</h1>
+
+      <div className="mb-6">
+        <VerifiedBadge remedy={remedy} />
+      </div>
 
       {/* Prominent Warning Box */}
       {(remedy.warnings_en || remedy.warnings_ne) && (

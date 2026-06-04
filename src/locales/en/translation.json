@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "title": "SafeMed Nepal"
+  },
+  "home": {
+    "tagline": "Doctor-verified traditional remedies",
+    "searchPlaceholder": "Search symptoms or remedies...",
+    "searchButton": "Search",
+    "clearButton": "Clear",
+    "loading": "Loading remedies...",
+    "noResults": "No remedies found. Please consult a doctor.",
+    "symptoms": {
+      "headache": "Headache",
+      "cough": "Cough",
+      "cold": "Cold",
+      "fever": "Fever",
+      "acidity": "Acidity",
+      "backPain": "Back Pain",
+      "soreThroat": "Sore Throat"
+    }
+  },
+  "remedy": {
+    "ingredients": "Ingredients",
+    "steps": "Steps",
+    "precautions": "Precautions",
+    "warnings": "When to see a doctor",
+    "saveOffline": "Save for Offline",
+    "saved": "Saved!",
+    "back": "Back to Home",
+    "verified": "Doctor verified",
+    "verifiedBy": "Verified by {{name}}",
+    "verifiedOn": "Reviewed and published for public use"
+  }
+}

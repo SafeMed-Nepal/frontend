@@ -29,7 +29,7 @@ export default function Admin() {
   const fetchRemedies = async () => {
     setLoading(true);
     try {
-      const result = await api.getRemedies();
+      const result = await api.getRemedies(null, { forAdmin: true });
       // backend returns { success: true, data: [...] }
       setRemedies(result.data || []);
       if (!result.data) console.warn('No data field in getRemedies response:', result);
@@ -48,7 +48,7 @@ export default function Admin() {
   const updateRemedyStatus = async (id, newStatus) => {
     setActionLoading(true);
     try {
-      await api.updateRemedyStatus(id, newStatus, "Rishav Admin");
+      await api.updateRemedyStatus(id, newStatus);
       alert(`✅ Successfully marked as ${newStatus}`);
       setSelectedRemedy(null);
       fetchRemedies();

@@ -16,15 +16,24 @@ async function getAuthHeaders() {
   };
 }
 
+async function getOptionalAuthHeaders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) return {};
+  return { Authorization: `Bearer ${session.access_token}` };
+}
+
 export const api = {
-  async getRemedies(symptom = null) {
+  async getRemedies(symptom = null, { forAdmin = false } = {}) {
     let url = `${API_BASE}/api/remedies`;
     if (symptom) {
       url += `?symptom=${encodeURIComponent(symptom)}`;
     }
 
+    const headers = forAdmin ? await getOptionalAuthHeaders() : {};
+
     const res = await fetch(url, {
       credentials: 'include',
+      headers,
     });
 
     if (!res.ok) throw new Error('Failed to fetch remedies');
