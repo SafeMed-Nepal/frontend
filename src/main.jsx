@@ -4,11 +4,14 @@ import App from './App.jsx'
 import './index.css'
 import './lib/i18n'
 import { AuthProvider } from './lib/AuthContext.jsx'
+import { ToastProvider } from './lib/ToastContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </AuthProvider>
   </React.StrictMode>
 )

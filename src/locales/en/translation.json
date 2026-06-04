@@ -31,4 +31,18 @@
     "verifiedBy": "Verified by {{name}}",
     "verifiedOn": "Reviewed and published for public use"
   }
+  ,
+  "toast": {
+    "success": {
+      "marked": "Successfully marked as {{status}}",
+      "addedDraft": "New remedy added as Draft!",
+      "savedOffline": "Saved for offline access!"
+    },
+    "error": {
+      "fetchRemedies": "Failed to fetch remedies: {{error}}",
+      "updateRemedy": "Failed to update: {{error}}",
+      "addRemedy": "Failed to add remedy: {{error}}",
+      "loadRemedy": "Failed to load remedy: {{error}}"
+    }
+  }
 }

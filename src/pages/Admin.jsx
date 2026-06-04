@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useToast } from "../lib/ToastContext";
 
 export default function Admin() {
   const { i18n } = useTranslation();
@@ -10,6 +11,7 @@ export default function Admin() {
   const [selectedRemedy, setSelectedRemedy] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const { showToast } = useToast();
 
   // Form State
   const [newRemedy, setNewRemedy] = useState({
@@ -35,6 +37,7 @@ export default function Admin() {
       if (!result.data) console.warn('No data field in getRemedies response:', result);
     } catch (err) {
       console.error('Admin fetchRemedies error:', err);
+      showToast(`Failed to fetch remedies: ${err.message || 'Unknown error'}`, 'error');
       setRemedies([]);
     } finally {
       setLoading(false);
@@ -53,11 +56,11 @@ export default function Admin() {
     setActionLoading(true);
     try {
       await api.updateRemedyStatus(id, newStatus);
-      alert(`Successfully marked as ${newStatus}`);
+      showToast(i18n.t('toast.success.marked', { status: newStatus }), 'success');
       setSelectedRemedy(null);
       fetchRemedies();
     } catch (err) {
-      alert(`Failed to update: ${err.message || "Unknown error"}`);
+      showToast(i18n.t('toast.error.updateRemedy', { error: err.message || 'Unknown error' }), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -78,8 +81,7 @@ export default function Admin() {
           symptom_tags: tagsArray,
           status: "draft",
       });
-
-      alert("New remedy added as Draft!");
+      showToast(i18n.t('toast.success.addedDraft'), 'success');
       setShowAddForm(false);
       setNewRemedy({
         title_en: "",
@@ -96,7 +98,7 @@ export default function Admin() {
       });
       fetchRemedies();
     } catch (err) {
-      alert(`Failed to add remedy: ${err.message || "Unknown error"}`);
+      showToast(i18n.t('toast.error.addRemedy', { error: err.message || 'Unknown error' }), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -371,6 +373,7 @@ export default function Admin() {
           </div>
         </div>
       )}
+      {/* Using global ToastProvider: individual Toast usage removed */}
     </div>
   );
 }

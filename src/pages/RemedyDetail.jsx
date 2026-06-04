@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import Toast from '../components/Toast';
+import { useToast } from '../lib/ToastContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { ArrowLeft, AlertTriangle, DownloadCloud, CheckCircle } from 'lucide-react';
 
@@ -12,8 +13,7 @@ export default function RemedyDetail() {
   const [remedy, setRemedy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchRemedy = async () => {
@@ -28,6 +28,7 @@ export default function RemedyDetail() {
           setRemedy(JSON.parse(cached));
         } else {
           console.error('Failed to load remedy:', err);
+          showToast(i18n.t('toast.error.loadRemedy', { error: err.message || 'Unknown error' }), 'error');
         }
       } finally {
         setLoading(false);
@@ -41,8 +42,7 @@ export default function RemedyDetail() {
     
     localStorage.setItem(`remedy_${remedy.id}`, JSON.stringify(remedy));
     setSaved(true);
-    setToastMessage(t('remedy.saved', 'Saved for offline access!'));
-    setShowToast(true);
+    showToast(i18n.t('toast.success.savedOffline'), 'success');
     
     setTimeout(() => setSaved(false), 2000);
   };
@@ -107,11 +107,7 @@ export default function RemedyDetail() {
         {saved ? <CheckCircle size={18} aria-hidden /> : <DownloadCloud size={18} aria-hidden />} {t('remedy.saveOffline', 'Save for Offline')}
       </button>
 
-      <Toast 
-        message={toastMessage} 
-        show={showToast} 
-        onClose={() => setShowToast(false)} 
-      />
+      {/* Toast displayed via ToastProvider */}
     </div>
   );
 }

@@ -31,4 +31,18 @@
     "verifiedBy": "{{name}} द्वारा प्रमाणित",
     "verifiedOn": "सार्वजनिक प्रयोगका लागि समीक्षा गरी प्रकाशित"
   }
+  ,
+  "toast": {
+    "success": {
+      "marked": "सफलतापूर्वक {{status}} भनी चिन्हित गरिएको",
+      "addedDraft": "नयाँ उपचार ड्राफ्टको रूपमा थपियो!",
+      "savedOffline": "अफलाइनको लागि सुरक्षित गरियो!"
+    },
+    "error": {
+      "fetchRemedies": "उपचारहरू ल्याउन असफल: {{error}}",
+      "updateRemedy": "अपडेट गर्न असफल: {{error}}",
+      "addRemedy": "उपचार थप्न असफल: {{error}}",
+      "loadRemedy": "उपचार लोड गर्न असफल: {{error}}"
+    }
+  }
 }
