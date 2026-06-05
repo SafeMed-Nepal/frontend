@@ -10,7 +10,7 @@ This frontend is a Vite-powered React app with Supabase authentication and an Ex
 
 ## Key folders
 
-- `src/pages/` - route-based pages such as `Home`, `Admin`, `Login`, and `RemedyDetail`.
+- `src/pages/` - route-based pages such as `Home`, `Admin`, `Login`, `Profile`, `ForgotPassword`, `ResetPassword`, and `RemedyDetail`.
 - `src/lib/` - reusable modules for API calls, auth context, offline review queue, Supabase client, and toast notifications.
 - `src/components/` - UI building blocks like `Navbar`, `ProtectedRoute`, `Toast`, and `VerifiedBadge`.
 
@@ -26,7 +26,7 @@ This frontend is a Vite-powered React app with Supabase authentication and an Ex
 
 ### Authentication
 - `src/lib/supabase.js` initializes Supabase with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-- `src/lib/AuthContext.jsx` manages session state, profile loading, and exposes `signIn` / `signOut`.
+- `src/lib/AuthContext.jsx` manages session state, profile loading, exposes `signIn` / `signOut`, and supports profile updates.
 - Auth state is stored in Supabase session storage.
 
 ### Page flows
@@ -47,6 +47,19 @@ This frontend is a Vite-powered React app with Supabase authentication and an Ex
 - supports review submission with optional comments
 - supports reviewer/admin actions and status updates
 - maintains an offline review queue in `src/lib/offlineReviews.js`
+
+`Profile.jsx`
+- shows current reviewer/admin profile data
+- allows editing the logged-in user's `full_name`
+- is protected behind auth and accessible from the dashboard
+
+`ForgotPassword.jsx`
+- sends a Supabase password reset email for the entered address
+- redirects users to `/reset-password` after verification
+
+`ResetPassword.jsx`
+- allows a verified user to set a new password
+- uses Supabase `auth.updateUser` after email verification
 
 ## Offline review flow
 
@@ -106,5 +119,6 @@ Environment variables:
 ## Notes
 
 - The frontend already supports optional reviewer comments.
+- Published remedies are marked as reviewed by a doctor rather than "verified" in the current UI.
 - The current API wrapper uses `credentials: 'include'` to preserve cookies with the backend express server.
 - The app should be refactored so admin/reviewer dashboard state is cleaner and less congested.
