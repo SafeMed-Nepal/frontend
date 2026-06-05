@@ -28,10 +28,10 @@ export default function VerifiedBadge({ remedy, size = 'md' }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-800 font-medium border border-green-200 ${sizeClasses}`}
-      title={t('remedy.verifiedOn')}
+      title={t('remedy.reviewedOn')}
     >
       <Check size={14} aria-hidden />
-      <span>{t('remedy.verifiedBy', { name: reviewer })}</span>
+      <span>{t('remedy.reviewedBy', { name: reviewer })}</span>
     </span>
   );
 }

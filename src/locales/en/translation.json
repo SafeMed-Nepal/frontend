@@ -3,7 +3,7 @@
     "title": "SafeMed Nepal"
   },
   "home": {
-    "tagline": "Doctor-verified traditional remedies",
+    "tagline": "Doctor-reviewed traditional remedies",
     "searchPlaceholder": "Search symptoms or remedies...",
     "searchButton": "Search",
     "clearButton": "Clear",
@@ -27,9 +27,9 @@
     "saveOffline": "Save for Offline",
     "saved": "Saved!",
     "back": "Back to Home",
-    "verified": "Doctor verified",
-    "verifiedBy": "Verified by {{name}}",
-    "verifiedOn": "Reviewed and published for public use"
+    "reviewed": "Doctor reviewed",
+    "reviewedBy": "Reviewed by {{name}}",
+    "reviewedOn": "Reviewed and published for public use"
   }
   ,
   "toast": {
