@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import RemedyDetail from './pages/RemedyDetail';
 import Admin from './pages/Admin';
 import AdminReview from './pages/AdminReview';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -29,6 +30,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminReview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

@@ -130,6 +130,9 @@ export default function Admin() {
           <button onClick={fetchRemedies} className="px-6 py-2 bg-gray-600 text-white rounded-xl">
             Refresh
           </button>
+          <button onClick={() => navigate('/admin/profile')} className="px-6 py-2 bg-slate-100 text-slate-800 rounded-xl hover:bg-slate-200">
+            Profile
+          </button>
           <button onClick={() => setShowAddForm(true)} className="px-6 py-2 bg-amber-600 text-white rounded-xl font-semibold">
             + Add New Remedy
           </button>

@@ -111,8 +111,31 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (profileUpdates) => {
+    if (!user?.id) {
+      throw new Error('Not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(profileUpdates)
+      .eq('id', user.id)
+      .select('role, full_name')
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      setUserProfile(data);
+    }
+
+    return data;
+  };
+
   const value = useMemo(
-    () => ({ user, userProfile, loading, signIn, signOut }),
+    () => ({ user, userProfile, loading, signIn, signOut, updateProfile }),
     [user, userProfile, loading]
   );
 
