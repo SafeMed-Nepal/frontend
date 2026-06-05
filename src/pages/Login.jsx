@@ -78,6 +78,10 @@ export default function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <a href="/forgot-password" className="text-amber-600 hover:underline">Forgot password?</a>
+        </div>
       </div>
     </div>
   );
