@@ -70,12 +70,15 @@ export const api = {
   },
 
   async getRemedyById(id) {
+    const headers = await getOptionalAuthHeaders();
     const res = await fetch(`${API_BASE}/api/remedies/${id}`, {
       credentials: 'include',
+      headers,
     });
 
-    if (!res.ok) throw new Error('Failed to fetch remedy');
-    return res.json();
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to fetch remedy');
+    return body;
   },
 
   async updateRemedyStatus(id, status, reviewerName = 'Reviewer') {
@@ -92,6 +95,35 @@ export const api = {
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(payload?.error || 'Failed to update remedy status');
+    }
+    return payload;
+  },
+
+  async updateRemedy(id, changes) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/remedies/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(changes),
+    });
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(payload?.error || 'Failed to update remedy');
+    }
+    return payload;
+  },
+
+  async deleteRemedy(id) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/remedies/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(payload?.error || 'Failed to delete remedy');
     }
     return payload;
   },

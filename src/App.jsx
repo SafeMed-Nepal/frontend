@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import RemedyDetail from './pages/RemedyDetail';
 import Admin from './pages/Admin';
+import AdminReview from './pages/AdminReview';
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,6 +23,14 @@ function App() {
                 <Admin />
               </ProtectedRoute>
             } 
+          />
+          <Route
+            path="/admin/remedy/:id"
+            element={
+              <ProtectedRoute>
+                <AdminReview />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </div>
