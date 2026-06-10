@@ -19,6 +19,7 @@ export default function AdminReview() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editFields, setEditFields] = useState({
     title_en: '',
     title_ne: '',
@@ -32,6 +33,9 @@ export default function AdminReview() {
     precautions_ne: '',
     warnings_en: '',
     warnings_ne: '',
+    video_url: '',
+    source_url: '',
+    source_label: '',
   });
 
   const getField = (en, ne) => (i18n.language === 'ne' && ne ? ne : en);
@@ -55,6 +59,9 @@ export default function AdminReview() {
         precautions_ne: loadedRemedy.precautions_ne || '',
         warnings_en: loadedRemedy.warnings_en || '',
         warnings_ne: loadedRemedy.warnings_ne || '',
+        video_url: loadedRemedy.video_url || '',
+        source_url: loadedRemedy.source_url || '',
+        source_label: loadedRemedy.source_label || '',
       });
 
       const reviewResult = await api.getReviews(id);
@@ -83,7 +90,7 @@ export default function AdminReview() {
           showToast('Invalid admin action', 'error');
           return;
         }
-        await api.updateRemedyStatus(id, decision, userProfile.full_name || 'Admin');
+        await api.updateRemedyStatus(id, decision, { reviewNotes: reviewComment });
         showToast(
           decision === 'published'
             ? 'Remedy published successfully'
@@ -125,7 +132,7 @@ export default function AdminReview() {
 
   const handleDeleteRemedy = async () => {
     if (!remedy) return;
-    if (!window.confirm('Delete this remedy? This is a soft delete and can be recovered by admins if needed.')) return;
+    setShowDeleteConfirm(false);
     setActionLoading(true);
     try {
       await api.deleteRemedy(id);
@@ -326,6 +333,38 @@ export default function AdminReview() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Video URL</label>
+                    <input
+                      type="url"
+                      value={editFields.video_url}
+                      onChange={(e) => setEditFields({ ...editFields, video_url: e.target.value })}
+                      className="w-full p-4 border rounded-3xl"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Source URL</label>
+                    <input
+                      type="url"
+                      value={editFields.source_url}
+                      onChange={(e) => setEditFields({ ...editFields, source_url: e.target.value })}
+                      className="w-full p-4 border rounded-3xl"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Source Label</label>
+                  <input
+                    type="text"
+                    value={editFields.source_label}
+                    onChange={(e) => setEditFields({ ...editFields, source_label: e.target.value })}
+                    className="w-full p-4 border rounded-3xl"
+                    placeholder="Clinical guidance, hospital handout, reviewed article"
+                  />
+                </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="submit"
@@ -363,6 +402,22 @@ export default function AdminReview() {
                   <div>
                     <h3 className="font-semibold">Warnings</h3>
                     <p className="mt-2 whitespace-pre-line text-amber-700">{getField(remedy.warnings_en, remedy.warnings_ne)}</p>
+                  </div>
+                ) : null}
+                {remedy.video_url ? (
+                  <div>
+                    <h3 className="font-semibold">Video</h3>
+                    <a className="mt-2 inline-block text-amber-700 underline break-all" href={remedy.video_url} target="_blank" rel="noreferrer">
+                      {remedy.video_url}
+                    </a>
+                  </div>
+                ) : null}
+                {remedy.source_url ? (
+                  <div>
+                    <h3 className="font-semibold">Source</h3>
+                    <a className="mt-2 inline-block text-amber-700 underline break-all" href={remedy.source_url} target="_blank" rel="noreferrer">
+                      {remedy.source_label || remedy.source_url}
+                    </a>
                   </div>
                 ) : null}
               </div>
@@ -412,6 +467,13 @@ export default function AdminReview() {
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">Admins can update status or delete this remedy.</p>
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  rows={4}
+                  className="w-full p-4 border rounded-3xl bg-gray-50 text-gray-900"
+                  placeholder="Revision or rejection note"
+                />
                 <div className="grid gap-3 sm:grid-cols-3">
                   <button
                     type="button"
@@ -440,7 +502,7 @@ export default function AdminReview() {
                 </div>
                 <button
                   type="button"
-                  onClick={handleDeleteRemedy}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={actionLoading}
                   className="w-full py-4 rounded-2xl border border-red-600 text-red-600 font-semibold hover:bg-red-50 disabled:opacity-50"
                 >
@@ -460,7 +522,10 @@ export default function AdminReview() {
                   <div key={`${review.reviewer_id}-${review.updated_at}`} className="border border-gray-100 rounded-3xl p-4 bg-gray-50">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-gray-900">{review.reviewer_name || review.reviewer_id}</p>
+                        <p className="font-semibold text-gray-900">
+                          {review.reviewer_name || review.reviewer_id}
+                          {review.reviewer_credentials ? `, ${review.reviewer_credentials}` : ''}
+                        </p>
                         <p className="text-sm text-gray-500">{new Date(review.updated_at).toLocaleString()}</p>
                       </div>
                       <div className="rounded-full px-3 py-1 text-sm font-semibold text-white bg-slate-700 capitalize">
@@ -494,13 +559,51 @@ export default function AdminReview() {
               {remedy.reviewer_name ? (
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Last reviewer</h3>
-                  <p className="mt-2 text-gray-700">{remedy.reviewer_name}</p>
+                  <p className="mt-2 text-gray-700">
+                    {remedy.reviewer_name}
+                    {remedy.reviewer_credentials ? `, ${remedy.reviewer_credentials}` : ''}
+                  </p>
+                </div>
+              ) : null}
+              {remedy.review_notes ? (
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Review notes</h3>
+                  <p className="mt-2 text-gray-700 whitespace-pre-line">{remedy.review_notes}</p>
                 </div>
               ) : null}
             </div>
           </div>
         </aside>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-semibold text-gray-900">Delete remedy?</h2>
+            <p className="mt-2 text-sm leading-relaxed text-gray-600">
+              This will soft-delete the remedy from public and reviewer lists. Admins can recover it later from the database if needed.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleDeleteRemedy}
+                disabled={actionLoading}
+                className="flex-1 rounded-2xl bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={actionLoading}
+                className="flex-1 rounded-2xl border border-gray-200 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

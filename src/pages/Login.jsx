@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import { useToast } from '../lib/ToastContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   
   const { signIn, user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   // Auto redirect if already logged in
@@ -29,6 +31,8 @@ export default function Login() {
       if (signInError) {
         throw signInError;
       }
+
+      showToast('Signed in successfully.', 'success');
       
       // Small delay to let auth state update
       setTimeout(() => {
@@ -37,7 +41,9 @@ export default function Login() {
       
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Invalid email or password');
+      const message = err.message || 'Invalid email or password';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -45,7 +51,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-md w-full max-w-md">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border border-gray-100">
         <h1 className="text-3xl font-bold text-center mb-2 text-amber-600">SafeMed Nepal</h1>
         <h2 className="text-xl text-center mb-8 text-gray-600">Admin / Reviewer Login</h2>
 

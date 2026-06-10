@@ -20,6 +20,7 @@ export default function VerifiedBadge({ remedy, size = 'md' }) {
   }
 
   const reviewer = formatReviewerName(remedy.reviewer_name);
+  const credentials = remedy.reviewer_credentials ? `, ${remedy.reviewer_credentials}` : '';
   const sizeClasses =
     size === 'sm'
       ? 'text-xs px-2.5 py-1'
@@ -31,7 +32,7 @@ export default function VerifiedBadge({ remedy, size = 'md' }) {
       title={t('remedy.reviewedOn')}
     >
       <Check size={14} aria-hidden />
-      <span>{t('remedy.reviewedBy', { name: reviewer })}</span>
+      <span>{t('remedy.reviewedBy', { name: `${reviewer}${credentials}` })}</span>
     </span>
   );
 }

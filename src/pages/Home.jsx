@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import VerifiedBadge from '../components/VerifiedBadge';
+import { useToast } from '../lib/ToastContext';
 
 const symptoms = [
   { labelKey: 'home.symptoms.headache', tag: 'headache', en: 'Headache' },
@@ -16,6 +17,7 @@ const symptoms = [
 
 export default function Home() {
   const { t, i18n } = useTranslation();
+  const { showToast } = useToast();
   const [remedies, setRemedies] = useState([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -28,7 +30,7 @@ export default function Home() {
     setLoading(true);
     setSelectedSymptom(symptom);
     try {
-      const result = await api.getRemedies(symptom);
+      const result = await api.getRemedies(symptom, { page, limit: 10 });
       const fetchedRemedies = result.data || [];
       setRemedies(fetchedRemedies);
       setTotalCount(result.count || 0);
@@ -38,14 +40,15 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       setRemedies([]);
+      showToast(t('toast.error.fetchRemedies', { error: err.message || 'Unknown error' }), 'error');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRemedies(null, page);
-  }, []);
+    fetchRemedies(selectedSymptom, page);
+  }, [page]);
 
   const filterRemedies = useCallback((list, rawQuery) => {
     const query = rawQuery.trim().toLowerCase();
@@ -70,6 +73,7 @@ export default function Home() {
 
   const handleSymptomClick = (tag) => {
     setSearchQuery('');
+    setPage(1);
     fetchRemedies(tag);
   };
 
@@ -104,6 +108,7 @@ export default function Home() {
   const clearSymptomFilter = () => {
     setSelectedSymptom(null);
     setSearchQuery('');
+    setPage(1);
     fetchRemedies();
   };
 

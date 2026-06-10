@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../lib/ToastContext';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -8,6 +9,7 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -18,9 +20,13 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      setError(error.message || 'Failed to reset password.');
+      const message = error.message || 'Failed to reset password.';
+      setError(message);
+      showToast(message, 'error');
     } else {
-      setStatus('Your password was updated successfully.');
+      const message = 'Your password was updated successfully.';
+      setStatus(message);
+      showToast(message, 'success');
       setTimeout(() => navigate('/login'), 1400);
     }
 
@@ -29,7 +35,7 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-md w-full max-w-md">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border border-gray-100">
         <h1 className="text-3xl font-bold text-center mb-2 text-amber-600">Reset Password</h1>
         <p className="text-center text-gray-600 mb-6">Set a new password after verification via email.</p>
 

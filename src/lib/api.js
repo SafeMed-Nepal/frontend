@@ -23,11 +23,17 @@ async function getOptionalAuthHeaders() {
 }
 
 export const api = {
-  async getRemedies(symptom = null, { forAdmin = false } = {}) {
-    let url = `${API_BASE}/api/remedies`;
+  async getRemedies(symptom = null, { forAdmin = false, page = 1, limit = 10 } = {}) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
     if (symptom) {
-      url += `?symptom=${encodeURIComponent(symptom)}`;
+      params.set('symptom', symptom);
     }
+
+    const url = `${API_BASE}/api/remedies?${params.toString()}`;
 
     const headers = forAdmin ? await getOptionalAuthHeaders() : {};
 
@@ -81,14 +87,14 @@ export const api = {
     return body;
   },
 
-  async updateRemedyStatus(id, status, reviewerName = 'Reviewer') {
+  async updateRemedyStatus(id, status, { reviewNotes = '' } = {}) {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_BASE}/api/remedies/${id}/status`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({
         status,
-        reviewer_name: reviewerName,
+        review_notes: reviewNotes,
       }),
     });
 

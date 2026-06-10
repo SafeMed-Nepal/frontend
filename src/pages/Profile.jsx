@@ -6,12 +6,14 @@ import { useToast } from '../lib/ToastContext';
 export default function Profile() {
   const { user, userProfile, updateProfile, loading } = useAuth();
   const [fullName, setFullName] = useState('');
+  const [credentials, setCredentials] = useState('');
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
     if (userProfile) {
       setFullName(userProfile.full_name || '');
+      setCredentials(userProfile.credentials || '');
     }
   }, [userProfile]);
 
@@ -21,7 +23,10 @@ export default function Profile() {
 
     setSaving(true);
     try {
-      await updateProfile({ full_name: fullName.trim() });
+      await updateProfile({
+        full_name: fullName.trim(),
+        credentials: credentials.trim() || null,
+      });
       showToast('Profile saved successfully.', 'success');
     } catch (err) {
       console.error('Profile save error:', err);
@@ -75,6 +80,18 @@ export default function Profile() {
               required
             />
             <p className="text-xs text-gray-500 mt-2">This is the display name shown in remedy review and publish metadata.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Credentials</label>
+            <input
+              type="text"
+              value={credentials}
+              onChange={(e) => setCredentials(e.target.value)}
+              className="w-full rounded-2xl border border-gray-200 p-4 focus:border-amber-500 focus:ring-amber-100 focus:ring-4"
+              placeholder="MBBS, MD, Ayurveda practitioner"
+            />
+            <p className="text-xs text-gray-500 mt-2">Shown beside your name on reviewed remedies.</p>
           </div>
 
           <button

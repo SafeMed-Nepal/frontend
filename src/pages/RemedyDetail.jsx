@@ -7,6 +7,29 @@ import { useToast } from '../lib/ToastContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { ArrowLeft, AlertTriangle, DownloadCloud, CheckCircle } from 'lucide-react';
 
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, '');
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      const id = parsed.searchParams.get('v');
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+
+    if (host === 'youtu.be') {
+      const id = parsed.pathname.split('/').filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export default function RemedyDetail() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -49,6 +72,7 @@ export default function RemedyDetail() {
 
   const getTitle = () => i18n.language === 'ne' && remedy?.title_ne ? remedy.title_ne : remedy?.title_en;
   const getField = (enField, neField) => i18n.language === 'ne' && neField ? neField : enField;
+  const videoEmbedUrl = getYouTubeEmbedUrl(remedy?.video_url);
 
   if (loading) return <div className="text-center mt-20 text-lg">Loading remedy...</div>;
   if (!remedy) return <div className="text-center mt-20">Remedy not found</div>;
@@ -63,6 +87,13 @@ export default function RemedyDetail() {
 
       <div className="mb-6">
         <VerifiedBadge remedy={remedy} />
+      </div>
+
+      <div className="bg-white border border-green-100 p-5 rounded-2xl mb-6 shadow-sm">
+        <p className="font-semibold text-green-800">Safety note</p>
+        <p className="text-green-900/80 mt-1 leading-relaxed">
+          This remedy is educational and is not a substitute for professional medical care.
+        </p>
       </div>
 
       {/* Prominent Warning Box */}
@@ -96,6 +127,45 @@ export default function RemedyDetail() {
             {getField(remedy.steps_en, remedy.steps_ne)}
           </div>
         </div>
+
+        {(remedy.precautions_en || remedy.precautions_ne) && (
+          <div className="bg-white p-6 rounded-3xl shadow-sm">
+            <h2 className="font-semibold text-lg mb-3">{t('remedy.precautions', 'Precautions')}</h2>
+            <p className="whitespace-pre-line text-gray-700 leading-relaxed">
+              {getField(remedy.precautions_en, remedy.precautions_ne)}
+            </p>
+          </div>
+        )}
+
+        {remedy.video_url && (
+          <div className="bg-white p-6 rounded-3xl shadow-sm">
+            <h2 className="font-semibold text-lg mb-3">Reviewed video</h2>
+            {videoEmbedUrl ? (
+              <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+                <iframe
+                  src={videoEmbedUrl}
+                  title={`${getTitle()} video`}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <a className="text-amber-700 underline break-all" href={remedy.video_url} target="_blank" rel="noreferrer">
+                Open video
+              </a>
+            )}
+          </div>
+        )}
+
+        {remedy.source_url && (
+          <div className="bg-white p-6 rounded-3xl shadow-sm">
+            <h2 className="font-semibold text-lg mb-3">Source</h2>
+            <a className="text-amber-700 underline break-all" href={remedy.source_url} target="_blank" rel="noreferrer">
+              {remedy.source_label || remedy.source_url}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Save for Offline Button */}

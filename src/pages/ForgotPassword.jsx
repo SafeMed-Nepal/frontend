@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../lib/ToastContext';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -19,9 +21,13 @@ export default function ForgotPassword() {
     });
 
     if (error) {
-      setError(error.message || 'Failed to send reset email.');
+      const message = error.message || 'Failed to send reset email.';
+      setError(message);
+      showToast(message, 'error');
     } else {
-      setStatus('If the email exists, a password reset link was sent.');
+      const message = 'If the email exists, a password reset link was sent.';
+      setStatus(message);
+      showToast(message, 'success');
       setEmail('');
     }
 
@@ -30,7 +36,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-md w-full max-w-md">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border border-gray-100">
         <h1 className="text-3xl font-bold text-center mb-2 text-amber-600">Forgot Password</h1>
         <p className="text-center text-gray-600 mb-6">Enter your email to receive a verification link.</p>
 

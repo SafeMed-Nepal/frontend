@@ -33,12 +33,15 @@ export default function Admin() {
     warnings_en: "",
     warnings_ne: "",
     symptom_tags: "",
+    video_url: "",
+    source_url: "",
+    source_label: "",
   });
 
   const fetchRemedies = async () => {
     setLoading(true);
     try {
-      const result = await api.getRemedies(null, { forAdmin: true });
+      const result = await api.getRemedies(null, { forAdmin: true, page, limit: 10 });
       setRemedies(result.data || []);
       setTotalCount(result.count || 0);
       if (!result.data) console.warn('No data field in getRemedies response:', result);
@@ -107,6 +110,9 @@ export default function Admin() {
         warnings_en: '',
         warnings_ne: '',
         symptom_tags: '',
+        video_url: '',
+        source_url: '',
+        source_label: '',
       });
       fetchRemedies();
     } catch (err) {
@@ -330,6 +336,40 @@ export default function Admin() {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Video URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={newRemedy.video_url}
+                    onChange={(e) => setNewRemedy({ ...newRemedy, video_url: e.target.value })}
+                    className="w-full p-4 border rounded-2xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Source URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={newRemedy.source_url}
+                    onChange={(e) => setNewRemedy({ ...newRemedy, source_url: e.target.value })}
+                    className="w-full p-4 border rounded-2xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Source Label</label>
+                <input
+                  type="text"
+                  placeholder="Clinical guidance, hospital handout, reviewed article"
+                  value={newRemedy.source_label}
+                  onChange={(e) => setNewRemedy({ ...newRemedy, source_label: e.target.value })}
+                  className="w-full p-4 border rounded-2xl"
+                />
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                   type="submit"
@@ -350,6 +390,27 @@ export default function Admin() {
           </div>
         </div>
       )}
+
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-gray-600">Total: {totalCount}</div>
+        <div className="flex gap-2">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="px-3 py-2 bg-gray-100 rounded-xl disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <div className="px-3 py-2 bg-white border rounded-xl">Page {page}</div>
+          <button
+            disabled={remedies.length < 10}
+            onClick={() => setPage((p) => p + 1)}
+            className="px-3 py-2 bg-gray-100 rounded-xl disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

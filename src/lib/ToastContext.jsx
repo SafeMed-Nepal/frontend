@@ -4,10 +4,10 @@ import Toast from '../components/Toast'
 const ToastContext = createContext(null)
 
 export function ToastProvider({ children }) {
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success', duration: 3500 })
 
-  const showToast = useCallback((message, type = 'success') => {
-    setToast({ show: true, message, type })
+  const showToast = useCallback((message, type = 'success', duration = 3500) => {
+    setToast({ show: true, message, type, duration })
   }, [])
 
   const hideToast = useCallback(() => {
@@ -22,6 +22,7 @@ export function ToastProvider({ children }) {
         show={toast.show}
         onClose={hideToast}
         type={toast.type}
+        duration={toast.duration}
       />
     </ToastContext.Provider>
   )
