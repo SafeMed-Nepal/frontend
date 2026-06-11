@@ -291,8 +291,8 @@ export default function Admin() {
 
       {/* ─── Add Remedy Modal ─── */}
       {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white w-full sm:max-w-2xl rounded-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Modal header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <h2 className="text-lg font-bold text-gray-900">Add New Remedy</h2>
