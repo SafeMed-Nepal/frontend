@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
-import Toast from '../components/Toast';
 import { useToast } from '../lib/ToastContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { ArrowLeft, AlertTriangle, DownloadCloud, CheckCircle } from 'lucide-react';

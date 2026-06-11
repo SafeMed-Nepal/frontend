@@ -1,124 +1,73 @@
-# SafeMed Frontend
+# SafeMed Frontend Client (PWA) 📱
 
-## Overview
+This is the Progressive Web Application (PWA) client for SafeMed Nepal built with **React 19**, **Vite 8**, **Tailwind CSS v4**, and **i18next** for bilingual translation support.
 
-This frontend is a Vite-powered React app with Supabase authentication and an Express backend API integration. It is built to support:
-- public remedy browsing
-- bilingual data display (English / Nepali)
-- reviewer dashboard workflows
-- offline reviewer queue sync
+---
 
-## Key folders
+## ✨ Key Frontend Features
 
-- `src/pages/` - route-based pages such as `Home`, `Admin`, `Login`, `Profile`, `ForgotPassword`, `ResetPassword`, and `RemedyDetail`.
-- `src/lib/` - reusable modules for API calls, auth context, offline review queue, Supabase client, and toast notifications.
-- `src/components/` - UI building blocks like `Navbar`, `ProtectedRoute`, `Toast`, and `VerifiedBadge`.
+### 1. Bilingual Support (EN/NE)
+* Powered by `react-i18next`.
+* Toggle instantly between **English** and **Nepali (नेपाली)** using the navbar language switcher.
+* Language selection is persisted in `localStorage`.
+* Translation keys are organized in `src/locales/en/translation.json` and `src/locales/ne/translation.json`.
 
-## Frontend API flow
+### 2. Progressive Web App (PWA) Capabilities
+* Fully responsive and optimized for mobile viewports.
+* **Offline Caching**: Built using `vite-plugin-pwa` with custom service worker configurations. When offline, users can still search and read previously loaded remedies.
+* **Add to Home Screen (A2HS)**: Supports browser installation prompts on Android, iOS, and desktop browsers.
+* Includes generated standard medical PWA icons (`icon-192.png` and `icon-512.png`).
 
-### API wrapper `src/lib/api.js`
-- `getRemedies(symptom, { forAdmin })` -> `GET /api/remedies`
-- `getRemedyById(id)` -> `GET /api/remedies/:id`
-- `postReview(remedyId, payload)` -> `POST /api/remedies/:id/reviews`
-- `getReviews(remedyId)` -> `GET /api/remedies/:id/reviews`
-- `updateRemedyStatus(id, status, reviewerName)` -> `PATCH /api/remedies/:id/status`
-- `createRemedy(remedy)` -> `POST /api/remedies`
+### 3. Offline Verification Queue Sync
+* Reviewers can verify and submit remedy reviews even in remote locations of Nepal without cellular data.
+* If the app is offline:
+  * The review is captured and stored locally in the `safe-med-offline-reviews` array in `localStorage`.
+  * An amber warning banner appears showing the number of pending syncs.
+* When connection is recovered (`online` event listener):
+  * The offline queue is automatically sent to the API server.
+  * A success toast notification alerts the reviewer of the synchronization.
 
-### Authentication
-- `src/lib/supabase.js` initializes Supabase with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-- `src/lib/AuthContext.jsx` manages session state, profile loading, exposes `signIn` / `signOut`, and supports profile updates.
-- Auth state is stored in Supabase session storage.
+### 4. Admin & Reviewer Dashboard (`/admin`)
+* Manage and filter remedy logs based on their approval state (`draft`, `pending`, `revision_required`, `rejected`, `published`).
+* Modal overlay to create new remedies directly inside the dashboard.
+* Sidebar listing recent reviews and audits for easy reference.
+* Single review detail page (`/admin/remedy/:id`) showing complete control forms to approve, reject, or request revisions.
 
-### Page flows
+### 5. Onboarding Forms (`/about`)
+* Join as a reviewer page featuring the new extended application inputs:
+  * **NMC Registration Number** (Optional: accommodates alternative certificate IDs).
+  * **Credential Link / Document URL** (Required: link to certificate, Google Drive, or portfolio).
 
-`Home.jsx`
-- loads remedies via `api.getRemedies()`
-- supports symptom filters and client-side search over cached remedies
-- links to `RemedyDetail` pages
+---
 
-`RemedyDetail.jsx`
-- loads a single remedy via `api.getRemedyById(id)`
-- falls back to offline localStorage cache if network fails
-- supports saving remedy details to offline storage
+## 🏗️ State Management & Contexts
 
-`Admin.jsx`
-- loads all remedies for staff with `api.getRemedies(null, { forAdmin: true })`
-- loads selected remedy review counts via `api.getReviews(remedyId)`
-- supports review submission with optional comments
-- supports reviewer/admin actions and status updates
-- maintains an offline review queue in `src/lib/offlineReviews.js`
+* **`AuthContext` (`src/lib/AuthContext.jsx`)**:
+  Manages login, signup, session tokens (persisted in `safemed-auth` local storage), profile updates, and role-based access checks (Staff vs Public).
+* **`ToastContext` (`src/lib/ToastContext.jsx`)**:
+  Global message banner system displaying custom notices for actions (success, errors, warnings, info) with sliding micro-animations.
 
-`Profile.jsx`
-- shows current reviewer/admin profile data
-- allows editing the logged-in user's `full_name`
-- is protected behind auth and accessible from the dashboard
+---
 
-`ForgotPassword.jsx`
-- sends a Supabase password reset email for the entered address
-- redirects users to `/reset-password` after verification
+## 🛠️ Styling & Design System
+* Styled with **Tailwind CSS v4** (`@tailwindcss/vite` plugin).
+* Features:
+  * Glassmorphism highlights.
+  * Premium color palettes (curated amber, emerald, and slate HSL tones).
+  * Subtle hover transitions and active scales.
+  * Customized horizontal scrolling scrollbar utilities for symptoms filter.
 
-`ResetPassword.jsx`
-- allows a verified user to set a new password
-- uses Supabase `auth.updateUser` after email verification
+---
 
-## Offline review flow
+## ⚙️ Development Environment Variables
 
-When offline, review submissions are queued in localStorage:
-- `enqueueReview()` saves review items locally
-- `flushQueue()` retries when back online
-- queued items are submitted via `api.postReview(remedyId, { decision, comment })`
+Create a `.env` file in `frontend/` with:
 
-## Network layer diagram
+```properties
+# Supabase Project Credentials
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 
-Browser / React App
-  ├─> Supabase Auth SDK (`src/lib/supabase.js`)
-  |    └─> Supabase Auth endpoints for sign-in/session
-  └─> Express backend API via `src/lib/api.js`
-       ├─> `GET /api/remedies`
-       ├─> `GET /api/remedies/:id`
-       ├─> `POST /api/remedies/:id/reviews`
-       ├─> `GET /api/remedies/:id/reviews`
-       ├─> `PATCH /api/remedies/:id/status`
-       └─> `POST /api/remedies`
-
-ASCII flow:
-
-[Browser] -> [React pages] -> [api.js] -> [Backend Express API] -> [Supabase Postgres]
-                                 |
-                                 +-> [Supabase Auth SDK]
-
-## Recommended UI improvement plan
-
-The current reviewer dashboard is overcrowded. A clean redesign should be split into two main screens:
-1. **Reviewer list page**
-   - A compact list of remedies with status pills, counts, and search/filter controls.
-   - Each remedy row opens a detail panel or navigates to a separate detail page.
-2. **Review detail page**
-   - Focused page for one remedy with clear sections: summary, ingredients, steps, reviewer history, and action controls.
-   - Add whitespace, card groups, and separate review history from action buttons.
-
-Suggested improvements:
-- move recent review history into its own panel below the remedy summary
-- replace inline count/status blocks with small chips and a clean summary card
-- use a dedicated reviewer decision modal or sidebar rather than one long scroll panel
-- keep action buttons grouped and visually separated from the content
-
-## How to run
-
-```bash
-cd frontend
-npm install
-npm run dev
+# Express API Gateway Location
+VITE_API_BASE_URL=http://localhost:3001
 ```
-
-Environment variables:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_API_BASE_URL`
-
-## Notes
-
-- The frontend already supports optional reviewer comments.
-- Published remedies are marked as reviewed by a doctor rather than "verified" in the current UI.
-- The current API wrapper uses `credentials: 'include'` to preserve cookies with the backend express server.
-- The app should be refactored so admin/reviewer dashboard state is cleaner and less congested.

@@ -11,16 +11,17 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus('');
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error: updateErr } = await supabase.auth.updateUser({ password });
 
-    if (error) {
-      const message = error.message || 'Failed to reset password.';
+    if (updateErr) {
+      const message = updateErr.message || 'Failed to reset password.';
       setError(message);
       showToast(message, 'error');
     } else {

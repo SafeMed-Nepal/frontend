@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (userId) => {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('role, full_name, credentials')
+      .select('role, full_name, credentials, avatar_url')
       .eq('id', userId)
       .maybeSingle();
 
@@ -28,7 +28,6 @@ export function AuthProvider({ children }) {
     let mounted = true;
 
     const initAuth = async () => {
-      // Always settle loading based on getSession() result.
       setLoading(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -43,8 +42,6 @@ export function AuthProvider({ children }) {
 
         if (mounted) setUser(session.user);
 
-        // Profile fetch should not prevent route gating from resolving.
-        // So we fetch profile, but even if it fails, we keep the loading state settled.
         fetchProfile(session.user.id)
           .then((profile) => {
             if (mounted) setUserProfile(profile);
@@ -77,10 +74,8 @@ export function AuthProvider({ children }) {
       }
 
       setUser(session.user);
-      // Settle route gating immediately; profile can load in background.
       setLoading(false);
 
-      // Avoid async Supabase calls directly in auth callback.
       setTimeout(() => {
         fetchProfile(session.user.id)
           .then((profile) => {
@@ -155,4 +150,3 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-

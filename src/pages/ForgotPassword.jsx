@@ -10,18 +10,19 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus('');
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    if (error) {
-      const message = error.message || 'Failed to send reset email.';
+    if (resetErr) {
+      const message = resetErr.message || 'Failed to send reset email.';
       setError(message);
       showToast(message, 'error');
     } else {

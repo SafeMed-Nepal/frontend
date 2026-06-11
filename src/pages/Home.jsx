@@ -15,6 +15,25 @@ const symptoms = [
   { labelKey: 'home.symptoms.soreThroat', tag: 'soreThroat', en: 'Sore Throat' },
 ];
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-100 animate-pulse">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="h-5 bg-gray-200 rounded-lg w-3/5" />
+        <div className="h-5 bg-green-100 rounded-full w-24" />
+      </div>
+      <div className="space-y-2 mb-4">
+        <div className="h-3.5 bg-gray-100 rounded w-full" />
+        <div className="h-3.5 bg-gray-100 rounded w-4/5" />
+      </div>
+      <div className="flex gap-2">
+        <div className="h-6 bg-amber-50 rounded-full w-16" />
+        <div className="h-6 bg-amber-50 rounded-full w-14" />
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { showToast } = useToast();
@@ -26,11 +45,11 @@ export default function Home() {
   const [selectedSymptom, setSelectedSymptom] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchRemedies = async (symptom = null, page = 1) => {
+  const fetchRemedies = async (symptom = null, pg = 1) => {
     setLoading(true);
     setSelectedSymptom(symptom);
     try {
-      const result = await api.getRemedies(symptom, { page, limit: 10 });
+      const result = await api.getRemedies(symptom, { page: pg, limit: 10 });
       const fetchedRemedies = result.data || [];
       setRemedies(fetchedRemedies);
       setTotalCount(result.count || 0);
@@ -128,9 +147,7 @@ export default function Home() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSearch();
-            }
+            if (e.key === 'Enter') handleSearch();
           }}
           placeholder={t('home.searchPlaceholder')}
           className="w-full p-3 sm:p-4 rounded-2xl border border-gray-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 text-base sm:text-lg"
@@ -153,7 +170,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mb-8 sm:mb-10 -mx-1 px-1 overflow-x-auto sm:overflow-visible">
+      <div className="mb-8 sm:mb-10 -mx-1 px-1 overflow-x-auto sm:overflow-visible scrollbar-hide">
         <div className="flex sm:flex-wrap gap-2 min-w-max sm:min-w-0 pb-1">
           {symptoms.map((sym) => (
             <button
@@ -182,7 +199,11 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">{t('home.loading')}</div>
+        <div className="space-y-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : remedies.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           {t('home.noResults')}
@@ -212,7 +233,8 @@ export default function Home() {
           ))}
         </div>
       )}
-      {/* pagination */}
+
+      {/* Pagination */}
       <div className="flex items-center justify-between mt-6 max-w-2xl mx-auto">
         <div className="text-sm text-gray-600">Total: {totalCount}</div>
         <div className="flex gap-2">

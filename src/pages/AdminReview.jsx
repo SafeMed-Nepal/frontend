@@ -4,6 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useToast } from '../lib/ToastContext';
 import { useAuth } from '../lib/AuthContext';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  ThumbsUp,
+  Edit3,
+  Leaf,
+  List,
+  Shield,
+  Play,
+  Link2,
+  Trash2,
+  RefreshCw,
+} from 'lucide-react';
 
 export default function AdminReview() {
   const { id } = useParams();
@@ -183,10 +197,38 @@ export default function AdminReview() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="px-4 py-2 rounded-full bg-gray-100 text-sm text-gray-700 capitalize">{remedy.status.replace('_', ' ')}</span>
-          <span className="px-4 py-2 rounded-full bg-green-50 text-sm text-green-700">{counts.approve || 0} approves</span>
-          <span className="px-4 py-2 rounded-full bg-amber-50 text-sm text-amber-700">{counts.needs_revision || 0} revisions</span>
-          <span className="px-4 py-2 rounded-full bg-red-50 text-sm text-red-700">{counts.reject || 0} rejects</span>
+          <span className={`min-h-[44px] px-3.5 py-2 rounded-full text-sm font-semibold capitalize inline-flex items-center gap-2 border ${
+            remedy.status === 'published' ? 'bg-green-50 text-green-700 border-green-200' :
+            remedy.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+            remedy.status === 'needs_revision' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+            'bg-slate-50 text-slate-700 border-slate-200'
+          }`}>
+            {remedy.status === 'published' ? (
+              <CheckCircle2 className="w-4 h-4 text-green-700" />
+            ) : remedy.status === 'rejected' ? (
+              <XCircle className="w-4 h-4 text-red-700" />
+            ) : remedy.status === 'needs_revision' ? (
+              <AlertTriangle className="w-4 h-4 text-amber-700" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-slate-500" />
+            )}
+            {remedy.status.replace('_', ' ')}
+          </span>
+
+          <span className="min-h-[44px] px-3 py-2 rounded-full bg-green-50 text-sm text-green-700 inline-flex items-center gap-2">
+            <ThumbsUp className="w-4 h-4" />
+            {counts.approve || 0} approves
+          </span>
+
+          <span className="min-h-[44px] px-3 py-2 rounded-full bg-amber-50 text-sm text-amber-700 inline-flex items-center gap-2">
+            <Edit3 className="w-4 h-4" />
+            {counts.needs_revision || 0} revisions
+          </span>
+
+          <span className="min-h-[44px] px-3 py-2 rounded-full bg-red-50 text-sm text-red-700 inline-flex items-center gap-2">
+            <XCircle className="w-4 h-4" />
+            {counts.reject || 0} rejects
+          </span>
         </div>
       </div>
 
@@ -442,8 +484,9 @@ export default function AdminReview() {
                     type="button"
                     onClick={() => handleReviewAction('approve')}
                     disabled={actionLoading}
-                    className="w-full py-4 rounded-2xl bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50"
+                    className="w-full min-h-[44px] py-4 rounded-2xl bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 inline-flex items-center justify-center gap-2"
                   >
+                    <ThumbsUp className="w-4 h-4" />
                     Approve
                   </button>
                   <button
@@ -528,7 +571,12 @@ export default function AdminReview() {
                         </p>
                         <p className="text-sm text-gray-500">{new Date(review.updated_at).toLocaleString()}</p>
                       </div>
-                      <div className="rounded-full px-3 py-1 text-sm font-semibold text-white bg-slate-700 capitalize">
+                      <div className={`rounded-full px-3 py-1 text-sm font-semibold capitalize border ${
+                        review.decision === 'approve' ? 'bg-green-50 text-green-700 border-green-200' :
+                        review.decision === 'needs_revision' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                        review.decision === 'reject' || review.decision === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                        'bg-gray-50 text-gray-700 border-gray-200'
+                      }`}>
                         {review.decision.replace('_', ' ')}
                       </div>
                     </div>
