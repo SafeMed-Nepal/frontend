@@ -18,6 +18,9 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  BarChart3,
+  Award,
+  Activity,
 } from 'lucide-react';
 
 const STATUS_FILTERS = [
@@ -99,6 +102,8 @@ export default function Admin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
   const [newRemedy, setNewRemedy] = useState({ ...EMPTY_REMEDY });
+  const [stats, setStats] = useState(null);
+  const [showStats, setShowStats] = useState(true);
 
   // Open form via ?add=true query param (from deep-links)
   useEffect(() => {
@@ -108,6 +113,15 @@ export default function Admin() {
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  const fetchStats = async () => {
+    try {
+      const data = await api.getRemediesStats();
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  };
 
   const fetchRemedies = async () => {
     setLoading(true);
@@ -124,7 +138,13 @@ export default function Admin() {
     }
   };
 
+  const handleRefresh = async () => {
+    setLoading(true);
+    await Promise.all([fetchRemedies(), fetchStats()]);
+  };
+
   useEffect(() => { fetchRemedies(); }, [page]);
+  useEffect(() => { fetchStats(); }, []);
 
   useEffect(() => {
     const onQueued = (e) => showToast(`Queued ${e.detail?.length || 0} offline review(s)`, 'success');
@@ -183,7 +203,19 @@ export default function Admin() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={fetchRemedies}
+              onClick={() => setShowStats(!showStats)}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition ${
+                showStats 
+                  ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              aria-label="Toggle Stats"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Stats</span>
+            </button>
+            <button
+              onClick={handleRefresh}
               className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
               aria-label="Refresh"
             >
@@ -199,6 +231,171 @@ export default function Admin() {
           </div>
         </div>
       </div>
+
+      {/* ─── Analytics Section ─── */}
+      {showStats && stats && (
+        <div className="mb-6 space-y-4">
+          {/* Metrics Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Remedies</p>
+                <h4 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalRemedies}</h4>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <FileText className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Verification Rate</p>
+                <h4 className="text-2xl font-bold text-gray-900 mt-1">
+                  {Math.round((stats.statusCounts.published / (stats.totalRemedies || 1)) * 100) || 0}%
+                </h4>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Review Audits</p>
+                <h4 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalReviews}</h4>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                <Activity className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Status Mix progress bar */}
+          <div className="space-y-3 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Remedy Status Mix</h3>
+            </div>
+            
+            <div className="h-3 w-full flex rounded-full overflow-hidden bg-gray-100">
+              {stats.statusCounts.published > 0 && (
+                <div 
+                  style={{ width: `${(stats.statusCounts.published / stats.totalRemedies) * 100}%` }} 
+                  className="bg-emerald-500 transition-all duration-500" 
+                  title={`Published: ${stats.statusCounts.published}`}
+                />
+              )}
+              {stats.statusCounts.draft > 0 && (
+                <div 
+                  style={{ width: `${(stats.statusCounts.draft / stats.totalRemedies) * 100}%` }} 
+                  className="bg-slate-400 transition-all duration-500" 
+                  title={`Draft: ${stats.statusCounts.draft}`}
+                />
+              )}
+              {stats.statusCounts.needs_revision > 0 && (
+                <div 
+                  style={{ width: `${(stats.statusCounts.needs_revision / stats.totalRemedies) * 100}%` }} 
+                  className="bg-amber-500 transition-all duration-500" 
+                  title={`Revision Needed: ${stats.statusCounts.needs_revision}`}
+                />
+              )}
+              {stats.statusCounts.rejected > 0 && (
+                <div 
+                  style={{ width: `${(stats.statusCounts.rejected / stats.totalRemedies) * 100}%` }} 
+                  className="bg-red-500 transition-all duration-500" 
+                  title={`Rejected: ${stats.statusCounts.rejected}`}
+                />
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="text-xs font-semibold text-gray-600">
+                  Published: {stats.statusCounts.published}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
+                <span className="text-xs font-semibold text-gray-600">
+                  Draft: {stats.statusCounts.draft}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                <span className="text-xs font-semibold text-gray-600">
+                  Revision: {stats.statusCounts.needs_revision}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
+                <span className="text-xs font-semibold text-gray-600">
+                  Rejected: {stats.statusCounts.rejected}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Symptoms & Contributors */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Symptoms Cover list */}
+            {stats.topTags?.length > 0 && (
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+                    <Activity className="w-4 h-4 text-amber-500" />
+                    Top Covered Symptoms
+                  </h3>
+                  <div className="space-y-3">
+                    {stats.topTags.map(({ tag, count }) => {
+                      const maxCount = Math.max(...stats.topTags.map(t => t.count)) || 1;
+                      const barPct = (count / maxCount) * 100;
+                      return (
+                        <div key={tag} className="space-y-1">
+                          <div className="flex justify-between text-xs font-medium text-gray-600">
+                            <span className="capitalize">{tag.replace('_', ' ')}</span>
+                            <span>{count} remedies</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden">
+                            <div 
+                              style={{ width: `${barPct}%` }} 
+                              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contributors list */}
+            {stats.topContributors?.length > 0 && (
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-amber-500" />
+                  Top Contributors
+                </h3>
+                <div className="space-y-3">
+                  {stats.topContributors.map(({ name, count }, index) => (
+                    <div key={index} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-b-0 last:pb-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-5.5 h-5.5 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs shrink-0">
+                          {index + 1}
+                        </div>
+                        <span className="text-xs font-semibold text-gray-800 truncate">{name}</span>
+                      </div>
+                      <span className="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md shrink-0">
+                        {count} {count === 1 ? 'remedy' : 'remedies'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ─── Filter chips (horizontally scrollable on mobile) ─── */}
       <div className="-mx-4 px-4 mb-5 overflow-x-auto scrollbar-hide">
