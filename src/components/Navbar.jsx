@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 import OfflineBanner from './OfflineBanner';
+import NotificationBell from './NotificationBell';
 import { useAuth } from '../lib/AuthContext';
 import { LayoutDashboard, User, LogOut, LogIn } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-2">
+                <NotificationBell />
                 {/* Desktop buttons */}
                 <Link
                   to="/admin"

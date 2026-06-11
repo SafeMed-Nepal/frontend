@@ -38,6 +38,11 @@ This is the Progressive Web Application (PWA) client for SafeMed Nepal built wit
   * **NMC Registration Number** (Optional: accommodates alternative certificate IDs).
   * **Credential Link / Document URL** (Required: link to certificate, Google Drive, or portfolio).
 
+### 6. Bilingual Notification Bell (Navbar)
+* Displays a bell icon for authenticated users (reviewers/admins) with a real-time unread count indicator.
+* Opens a dropdown menu to list the user's latest 50 notifications, rendering English/Nepali titles & descriptions dynamically based on the active language.
+* Enables marking all as read, and clicking an alert marks it as read and redirects the user to the relevant remedy review details page.
+
 ---
 
 ## 🏗️ State Management & Contexts

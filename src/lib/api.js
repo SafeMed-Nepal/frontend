@@ -162,4 +162,37 @@ export const api = {
     }
     return payload;
   },
+
+  async getNotifications() {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/notifications`, {
+      headers,
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to fetch notifications');
+    return body.data || [];
+  },
+
+  async markNotificationAsRead(id) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/notifications/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: 'read' }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to update notification');
+    return body.data;
+  },
+
+  async markAllNotificationsAsRead() {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/api/notifications/mark-all-read`, {
+      method: 'POST',
+      headers,
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'Failed to mark notifications as read');
+    return body;
+  },
 };

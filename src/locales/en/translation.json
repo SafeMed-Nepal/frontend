@@ -44,5 +44,12 @@
       "addRemedy": "Failed to add remedy: {{error}}",
       "loadRemedy": "Failed to load remedy: {{error}}"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet",
+    "allMarkedRead": "All notifications marked as read",
+    "failedMarkRead": "Failed to mark notifications read"
   }
 }

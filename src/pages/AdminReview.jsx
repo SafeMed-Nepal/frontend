@@ -93,6 +93,16 @@ export default function AdminReview() {
     fetchRemedyAndReviews();
   }, [id]);
 
+  useEffect(() => {
+    const handleRefresh = (e) => {
+      if (e.detail?.remedyId === id) {
+        fetchRemedyAndReviews();
+      }
+    };
+    window.addEventListener('safemed-refresh-remedy', handleRefresh);
+    return () => window.removeEventListener('safemed-refresh-remedy', handleRefresh);
+  }, [id]);
+
   const canEditRemedy = Boolean(remedy && user && (user.id === remedy.author_id || userProfile?.role === 'admin'));
 
   const handleReviewAction = async (decision) => {
