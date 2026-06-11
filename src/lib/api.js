@@ -195,14 +195,4 @@ export const api = {
     if (!res.ok) throw new Error(body?.error || 'Failed to mark notifications as read');
     return body;
   },
-
-  async getRemediesStats() {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${API_BASE}/api/remedies/stats`, {
-      headers,
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body?.error || 'Failed to fetch remedies stats');
-    return body.stats;
-  },
 };
